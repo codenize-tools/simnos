@@ -40,6 +40,10 @@ module Simnos
       results
     end
 
+    def region
+      @client.config.region
+    end
+
     private
 
     def topic_name(topic)

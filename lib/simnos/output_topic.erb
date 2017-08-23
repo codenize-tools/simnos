@@ -1,4 +1,4 @@
-sns do
+sns <%= region.inspect %> do
   <%- topics_by_name.each do |name, topic| -%>
   topic <%= name.inspect %> do
     display_name <%= topic[:attrs].attributes['DisplayName'].inspect %>

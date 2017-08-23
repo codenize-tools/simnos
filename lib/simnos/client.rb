@@ -1,5 +1,4 @@
 require 'pp'
-require 'awesome_print'
 require 'simnos/client_wrapper'
 require 'simnos/converter'
 require 'simnos/dsl'
@@ -34,13 +33,14 @@ module Simnos
       Simnos.logger.info("Exporting...#{@options[:dry_run] ? ' [dry-run]' : ''}")
 
       topics_by_name = client.topics
+      region = client.region
 
       path = Pathname.new(@filepath)
       base_dir = path.parent
       if @options[:split]
         FileUtils.mkdir_p(base_dir)
         topics_by_name.each do |name, aws|
-          Converter.new({name => aws}).convert do |dsl|
+          Converter.new({name => aws}, region).convert do |dsl|
             sns_file = base_dir.join("#{name}.sns")
             Simnos.logger.info("Export #{sns_file}")
             open(sns_file, 'wb') do |f|
@@ -50,7 +50,7 @@ module Simnos
           end
         end
       else
-        Converter.new(topics_by_name).convert do |dsl|
+        Converter.new(topics_by_name, region).convert do |dsl|
           FileUtils.mkdir_p(base_dir)
           Simnos.logger.info("Export #{path}")
           open(path, 'wb') do |f|
