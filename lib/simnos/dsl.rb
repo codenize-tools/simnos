@@ -47,7 +47,8 @@ module Simnos
 
     def sns(region = nil, &block)
       current_region = @context[:region] = region || ENV['AWS_DEFAULT_REGION'] || ENV.fetch('AWS_REGION')
-      topics = @result.snss[current_region] || []
+      current_region_sns = @result.snss[current_region]
+      topics = current_region_sns ? current_region_sns.topics : []
       @result.snss[current_region] = SNS.new(@context, topics, &block).result
     end
   end
