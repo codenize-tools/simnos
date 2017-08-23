@@ -2,9 +2,6 @@ sns do
   <%- topics_by_name.each do |name, topic| -%>
   topic <%= name.inspect %> do
     display_name <%= topic[:attrs].attributes['DisplayName'].inspect %>
-    subscriptions_pending <%= topic[:attrs].attributes['SubscriptionsPending'].inspect %>
-    subscriptions_confirmed <%= topic[:attrs].attributes['SubscriptionsConfirmed'].inspect %>
-    subscriptions_deleted <%= topic[:attrs].attributes['SubscriptionsDeleted'].inspect %>
 
     effective_delivery_policy do
 <%= JSON.parse(topic[:attrs].attributes['EffectiveDeliveryPolicy']).pretty_inspect.gsub(/^/, '      ') -%>
