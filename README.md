@@ -1,8 +1,7 @@
 # Simnos
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/simnos`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Simons is a tool to manage AWS SNS topic.
+It defines the state of SNS topic using DSL, and updates SNS topic according to DSL.
 
 ## Installation
 
@@ -22,18 +21,97 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```
+export AWS_ACCESS_KEY_ID='...'
+export AWS_SECRET_ACCESS_KEY='...'
+export AWS_REGION='ap-northeast-1'
+simnos -e -o SNSfile  # export SNS topic
+vi SNSfile
+simnos -a --dry-run
+simnos -a             # apply `SNSfile` to SNS
+```
 
-## Development
+## Help
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```
+Usage: simnos [options]
+    -h, --help                       Show help
+    -v, --debug                      Show debug log
+    -a, --apply                      apply DSL
+    -e, --export                     export to DSL
+    -n, --dry-run                    dry run
+    -f, --file FILE                  use selected DSL file
+    -s, --split                      split export DSL file to 1 per topic
+        --no-color
+                                     no color
+    -i, --include-names NAMES        include SNS names
+    -x, --exclude-names NAMES        exclude SNS names by regex
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## SNSfile
+
+```ruby
+sns "ap-northeast-1" do
+  topic "test-topic" do
+    display_name "test topic"
+
+    effective_delivery_policy do
+      {"http"=>
+        {"defaultHealthyRetryPolicy"=>
+          {"minDelayTarget"=>20,
+           "maxDelayTarget"=>20,
+           "numRetries"=>2,
+           "numMaxDelayRetries"=>0,
+           "numNoDelayRetries"=>0,
+           "numMinDelayRetries"=>0,
+           "backoffFunction"=>"linear"},
+         "disableSubscriptionOverrides"=>false}}
+    end
+
+    policy do
+      {"Version"=>"2008-10-17",
+       "Id"=>"__default_policy_ID",
+       "Statement"=>
+        [{"Sid"=>"__default_statement_ID",
+          "Effect"=>"Allow",
+          "Principal"=>{"AWS"=>"*"},
+          "Action"=>"SNS:Subscribe",
+          "Resource"=>"arn:aws:sns:ap-northeast-1:XXXXXXXXXXXX:test-topic",
+          "Condition"=>{"StringEquals"=>{"AWS:SourceOwner"=>"XXXXXXXXXXXX"}}}]}
+    end
+  end
+end
+```
+
+## Use template
+
+```ruby
+template "default_policy" do
+  policy do
+    {"Version"=>"2008-10-17",
+     "Id"=>"__default_policy_ID",
+     "Statement"=>
+      [{"Sid"=>"__default_statement_ID",
+        "Effect"=>"Allow",
+        "Principal"=>{"AWS"=>"*"},
+        "Action"=>"SNS:Subscribe",
+        "Resource"=>"arn:aws:sns:ap-northeast-1:XXXXXXXXXXXX:#{context.topic_name}",
+        "Condition"=>{"StringEquals"=>{"AWS:SourceOwner"=>"XXXXXXXXXXXX"}}}]}
+  end
+end
+
+sns "ap-northeast-1" do
+  include_template "default_policy", topic_name: "test-topic"
+end
+```
+
+## Similar tools
+
+* [Codenize.tools](http://codenize.tools/)
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/simnos.
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/codenize-tools//simnos.
 
 ## License
 
