@@ -111,7 +111,7 @@ end
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/codenize-tools//simnos.
+Bug reports and pull requests are welcome on GitHub at https://github.com/codenize-tools/simnos.
 
 ## License
 
