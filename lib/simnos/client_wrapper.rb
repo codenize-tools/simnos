@@ -26,7 +26,7 @@ module Simnos
       results = {}
       next_token = nil
       begin
-        resp = @client.list_topics(marker: next_token)
+        resp = @client.list_topics(next_token: next_token)
         resp.topics.each do |t|
           name = t.topic_arn.split(':').last
           next unless target?(name)
