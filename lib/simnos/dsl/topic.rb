@@ -91,7 +91,7 @@ module Simnos
 
         def modify_attr_hash(dsl_val, attr_name)
           aws_val = JSON.parse(@aws_topic[:attrs].attributes[attr_name])
-          return if dsl_val == aws_val
+          return if Simnos::Utils.normalize_hash(dsl_val) == Simnos::Utils.normalize_hash(aws_val)
           Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}")
           dsl_attrs = {
             attribute_name: attr_name,

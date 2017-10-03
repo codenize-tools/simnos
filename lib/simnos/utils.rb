@@ -10,6 +10,8 @@ module Simnos
               hash[k] = v.map { |o| normalize_hash(o) }
             elsif v.first.respond_to?(:to_h)
               hash[k] = v.map { |o| normalize_hash(o.to_h) }
+            else
+              v.sort!
             end
           elsif v.respond_to?(:to_h)
             hash[k] = normalize_hash(v.to_h)
