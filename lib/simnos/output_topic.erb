@@ -10,6 +10,14 @@ sns <%= region.inspect %> do
     policy do
 <%= JSON.parse(topic[:attrs].attributes['Policy']).pretty_inspect.gsub(/^/, '      ') -%>
     end
+    <%- if topic[:subscriptions] -%>
+
+    subscriptions do
+    <%- (topic[:subscriptions] || []).each do |subscription| -%>
+      subscription protocol: <%= subscription.protocol.inspect %>, endpoint: <%= subscription.endpoint.inspect %>
+    <%- end -%>
+    end
+    <%- end -%>
   end
   <%- if topics_by_name.keys.last != name -%>
 

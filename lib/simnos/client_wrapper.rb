@@ -7,7 +7,7 @@ module Simnos
     extend Forwardable
     include Filterable
 
-    def_delegators :@client, *%i/delete_topic get_topic_attributes create_topic set_topic_attributes set_subscription_attributes/
+    def_delegators :@client, *%i/delete_topic get_topic_attributes create_topic set_topic_attributes set_subscription_attributes subscribe unsubscribe/
 
     def initialize(options)
       @options = options
@@ -35,6 +35,17 @@ module Simnos
             attrs: topic_attrs(topic_arn: t.topic_arn),
           }
         end
+        next_token = resp.next_token
+      end while next_token
+      results
+    end
+
+    def subscriptions_by_topic(topic_arn: )
+      results = []
+      next_token = nil
+      begin
+        resp = @client.list_subscriptions_by_topic(topic_arn: topic_arn, next_token: next_token)
+        results.concat(resp.subscriptions)
         next_token = resp.next_token
       end while next_token
       results

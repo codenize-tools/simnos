@@ -1,4 +1,5 @@
 require 'simnos/utils'
+require 'simnos/dsl/subscriptions'
 
 module Simnos
   class DSL
@@ -6,12 +7,13 @@ module Simnos
       include Simnos::TemplateHelper
 
       class Result
-        ATTRIBUTES = %i/name display_name subscriptions_pending subscriptions_confirmed subscriptions_deleted effective_delivery_policy policy/
+        ATTRIBUTES = %i/name display_name subscriptions_pending subscriptions_confirmed subscriptions_deleted effective_delivery_policy policy topic_arn subscriptions aws_topic opt_out_subscriptions/
         attr_accessor *ATTRIBUTES
 
         def initialize(context)
           @context = context
           @options = context.options
+          @subscriptions = []
         end
 
         def to_h
@@ -24,10 +26,12 @@ module Simnos
         end
 
         def create
-          Simnos.logger.info("Create Topic #{name}")
-          return if @options[:dry_run]
+          Simnos.logger.info("Create Topic #{name}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+          return { topic: Hashie::Mash.new(topic_arn: 'not yet created') } if @options[:dry_run]
 
           resp = client.create_topic(name: name)
+          # save topic_arn
+          topic_arn = resp.topic_arn
           {
             topic: resp,
             attrs: client.topic_attrs(topic_arn: resp.topic_arn)
@@ -68,7 +72,7 @@ module Simnos
           Simnos.logger.debug(@aws_topic[:attrs].attributes.pretty_inspect)
           Simnos.logger.debug('--- dsl ---')
           Simnos.logger.debug(dsl_val)
-          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes")
+          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}")
           dsl_attrs = {
             attribute_name: attr_name,
             attribute_value: dsl_val,
@@ -88,7 +92,7 @@ module Simnos
         def modify_attr_hash(dsl_val, attr_name)
           aws_val = JSON.parse(@aws_topic[:attrs].attributes[attr_name])
           return if dsl_val == aws_val
-          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes")
+          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}")
           dsl_attrs = {
             attribute_name: attr_name,
             attribute_value: dsl_val,
@@ -165,6 +169,14 @@ module Simnos
 
       def policy
         @result.policy = yield
+      end
+
+      def subscriptions(opt_out: false, &block)
+        if opt_out
+          @result.opt_out_subscriptions = true
+          return
+        end
+        @result.subscriptions = Subscriptions.new(@context, self, &block).result
       end
     end
   end
