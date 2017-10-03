@@ -35,8 +35,8 @@ simnos -a             # apply `SNSfile` to SNS
 
 ```
 Usage: simnos [options]
-    -h, --help                       Show help
-    -v, --debug                      Show debug log
+    -h, --help                       show help
+    -v, --debug                      show debug log
     -a, --apply                      apply DSL
     -e, --export                     export to DSL
     -n, --dry-run                    dry run
@@ -44,6 +44,8 @@ Usage: simnos [options]
     -s, --split                      split export DSL file to 1 per topic
         --no-color
                                      no color
+        --with-subscriptions
+                                     manage subscriptions
     -i, --include-names NAMES        include SNS names
     -x, --exclude-names NAMES        exclude SNS names by regex
 ```
@@ -78,6 +80,13 @@ sns "ap-northeast-1" do
           "Action"=>"SNS:Subscribe",
           "Resource"=>"arn:aws:sns:ap-northeast-1:XXXXXXXXXXXX:test-topic",
           "Condition"=>{"StringEquals"=>{"AWS:SourceOwner"=>"XXXXXXXXXXXX"}}}]}
+    end
+
+    subscriptions opt_out: false do
+      subscription protocol: "https", endpoint: "https://your.awesome.site/"
+      subscription protocol: "email", endpoint: "simnos@example.com"
+      subscription protocol: "email-json", endpoint: "simnos@example.com"
+      subscription protocol: "sqs", endpoint: "arn:aws:sqs:ap-northeast-1:XXXXXXXXXXXX:test-queue"
     end
   end
 end
