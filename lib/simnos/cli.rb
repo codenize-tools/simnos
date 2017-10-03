@@ -43,6 +43,7 @@ module Simnos
         opts.on('-f', '--file FILE', 'use selected DSL file') { |v| @filepath = v }
         opts.on('-s', '--split', 'split export DSL file to 1 per topic') { @options[:split] = true }
         opts.on('',   '--no-color', 'no color') { @options[:color] = false }
+        opts.on('',   '--with-subscriptions', 'Export subscriptions') { @options[:with_subscriptions] = true }
         opts.on('-i', '--include-names NAMES', 'include SNS names', Array) { |v| @options[:includes] = v }
         opts.on('-x', '--exclude-names NAMES', 'exclude SNS names by regex', Array) do |v|
           @options[:excludes] = v.map! do |name|

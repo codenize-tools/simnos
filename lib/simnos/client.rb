@@ -33,6 +33,13 @@ module Simnos
       Simnos.logger.info("Exporting...#{@options[:dry_run] ? ' [dry-run]' : ''}")
 
       topics_by_name = client.topics
+
+      if @options[:with_subscriptions]
+        topics_by_name.each do |name, topic|
+          Simnos.logger.debug("exporting subscriptions of #{topic[:topic].topic_arn}")
+          topic[:subscriptions] = client.subscriptions_by_topic(topic_arn: topic[:topic].topic_arn)
+        end
+      end
       region = client.region
 
       path = Pathname.new(@filepath)
@@ -63,11 +70,43 @@ module Simnos
 
     private
 
+    def traverse_subscriptions(aws_topic, dsl_subscriptions, aws_subscriptions)
+      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) { |dsl_sub, h| h[[dsl_sub.protocol, dsl_sub.endpoint]] = dsl_sub }
+      aws_sub_by_key = aws_subscriptions.each_with_object({}) { |aws_sub, h| h[[aws_sub.protocol, aws_sub.endpoint]] = aws_sub }
+      # create
+      dsl_sub_by_key.reject { |key, _| aws_sub_by_key[key] }.each do |key, dsl_sub|
+        dsl_sub.aws_topic(aws_topic).create
+      end
+
+      dsl_sub_by_key.each do |key, dsl_sub|
+        aws_sub_by_key.delete(key)
+      end
+
+      # delete
+      aws_sub_by_key.each do |key, aws_sub|
+        Simnos.logger.info("Delete Topic(#{aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{key[0].inspect}, endpoint: #{key[1].inspect}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+        if aws_sub.subscription_arn.split(':').length < 6
+          Simnos.logger.warn("Can not delete Subscription `#{aws_sub.subscription_arn}`")
+          next
+        end
+        next if @options[:dry_run]
+
+        client.unsubscribe(subscription_arn: aws_sub.subscription_arn)
+      end
+    end
+
     def traverse_topics(dsl_topics_all, aws_topics_by_name)
       dsl_topics = dsl_topics_all.select { |t| target?(t.name) }
       # create
       dsl_topics.reject { |t| aws_topics_by_name[t.name] }.each do |dsl_topic|
-        aws_topics_by_name[dsl_topic.name] = dsl_topic.create
+        aws_topic = dsl_topic.create
+
+        unless @options[:dry_run]
+          aws_topics_by_name[dsl_topic.name] = aws_topic
+        end
+        if @options[:with_subscriptions] && !dsl_topic.opt_out_subscriptions
+          traverse_subscriptions(aws_topic, dsl_topic.subscriptions, [])
+        end
       end
 
       # modify
@@ -75,11 +114,16 @@ module Simnos
         next unless aws_topic = aws_topics_by_name.delete(dsl_topic.name)
 
         dsl_topic.aws(aws_topic).modify
+
+        if @options[:with_subscriptions] && !dsl_topic.opt_out_subscriptions
+          aws_subscriptions = client.subscriptions_by_topic(topic_arn: aws_topic[:topic].topic_arn)
+          traverse_subscriptions(aws_topic, dsl_topic.subscriptions, aws_subscriptions)
+        end
       end
 
       # delete
       aws_topics_by_name.each do |name, aws_topic|
-        Simnos.logger.info("Delete Topic #{name}")
+        Simnos.logger.info("Delete Topic #{name}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
         next if @options[:dry_run]
 
         client.delete_topic(topic_arn: aws_topic[:topic].topic_arn)
