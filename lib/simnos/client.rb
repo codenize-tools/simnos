@@ -3,6 +3,7 @@ require 'simnos/client_wrapper'
 require 'simnos/converter'
 require 'simnos/dsl'
 require 'simnos/filterable'
+require 'simnos/secret_expander'
 
 module Simnos
   class Client
@@ -15,6 +16,7 @@ module Simnos
     def initialize(filepath, options = {})
       @filepath = filepath
       @options = options
+      @options[:secret_expander] = SecretExpander.new(@options[:secret_provider]) if @options[:secret_provider]
     end
 
     def apply
@@ -71,7 +73,7 @@ module Simnos
     private
 
     def traverse_subscriptions(aws_topic, dsl_subscriptions, aws_subscriptions)
-      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) { |dsl_sub, h| h[[dsl_sub.protocol, dsl_sub.endpoint]] = dsl_sub }
+      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) { |dsl_sub, h| h[[dsl_sub.protocol, dsl_sub.masked_endpoint]] = dsl_sub }
       aws_sub_by_key = aws_subscriptions.each_with_object({}) { |aws_sub, h| h[[aws_sub.protocol, aws_sub.endpoint]] = aws_sub }
       # create
       dsl_sub_by_key.reject { |key, _| aws_sub_by_key[key] }.each do |key, dsl_sub|

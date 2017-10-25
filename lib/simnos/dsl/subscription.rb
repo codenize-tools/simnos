@@ -6,7 +6,7 @@ module Simnos
       include Simnos::TemplateHelper
 
       def create
-        Simnos.logger.info("Create Topic(#{@aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{protocol.inspect}, endpoint: #{endpoint.inspect}#{@options[:dry_run] ? ' [dry-run]' : ''}")
+        Simnos.logger.info("Create Topic(#{@aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{protocol.inspect}, endpoint: #{masked_endpoint.inspect}#{@options[:dry_run] ? ' [dry-run]' : ''}")
         return if @options[:dry_run]
 
         client.subscribe(
@@ -29,7 +29,27 @@ module Simnos
         @endpoint = endpoint
       end
 
-      attr_reader :topic, :protocol, :endpoint
+      attr_reader :topic, :protocol
+
+      def masked_endpoint
+        if URI.extract(@endpoint, ['http', 'https']).empty?
+          return @endpoint
+        end
+        uri = URI.parse(endpoint)
+        if uri.userinfo
+          uri.userinfo = [uri.userinfo.split(':', 2).first, '****'].join(':')
+        end
+        uri.to_s
+      end
+
+      def endpoint
+        secret_expander = @options[:secret_expander]
+        if secret_expander
+          secret_expander.expand(@endpoint)
+        else
+          @endpoint
+        end
+      end
 
       private
 
