@@ -46,6 +46,8 @@ Usage: simnos [options]
                                      no color
         --with-subscriptions
                                      manage subscriptions
+        --secret-provider NAME
+                                     use secret value expansion
     -i, --include-names NAMES        include SNS names
     -x, --exclude-names NAMES        exclude SNS names by regex
 ```
@@ -112,6 +114,18 @@ end
 sns "ap-northeast-1" do
   include_template "default_policy", topic_name: "test-topic"
 end
+```
+
+## Secret provider
+
+If you don't want to commit your Basic authentication password, you can use SecretProvider.
+Use --secret-provider option to select provider.(e.g. --secret-provider=vault)
+Expression inside `${...}` is passed to provider.
+
+```
+    subscriptions do
+      subscription protocol: "https", endpoint: "https://user:${password}your.awesome.site/"
+    end
 ```
 
 ## Similar tools
