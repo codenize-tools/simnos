@@ -46,6 +46,8 @@ Usage: simnos [options]
                                      no color
         --with-subscriptions
                                      manage subscriptions
+        --recreate-subscriptions
+                                     recreate subscriptions
         --secret-provider NAME
                                      use secret value expansion
     -i, --include-names NAMES        include SNS names
@@ -127,6 +129,13 @@ Expression inside `${...}` is passed to provider.
       subscription protocol: "https", endpoint: "https://user:${password}your.awesome.site/"
     end
 ```
+
+## Subscriptions
+
+There is no way to UPDATE subscription.
+So if you want to recreate subscrptions, use --recreate-subscriptions option.
+It is highly recommended to also path --include-names or exclude-names to select topics.
+Because of Basic authentication password is not returned from API, recreation is needed to change password.
 
 ## Similar tools
 

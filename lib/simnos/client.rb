@@ -72,19 +72,7 @@ module Simnos
 
     private
 
-    def traverse_subscriptions(aws_topic, dsl_subscriptions, aws_subscriptions)
-      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) { |dsl_sub, h| h[[dsl_sub.protocol, dsl_sub.masked_endpoint]] = dsl_sub }
-      aws_sub_by_key = aws_subscriptions.each_with_object({}) { |aws_sub, h| h[[aws_sub.protocol, aws_sub.endpoint]] = aws_sub }
-      # create
-      dsl_sub_by_key.reject { |key, _| aws_sub_by_key[key] }.each do |key, dsl_sub|
-        dsl_sub.aws_topic(aws_topic).create
-      end
-
-      dsl_sub_by_key.each do |key, dsl_sub|
-        aws_sub_by_key.delete(key)
-      end
-
-      # delete
+    def delete_subscriptions(aws_topic, aws_sub_by_key)
       aws_sub_by_key.each do |key, aws_sub|
         Simnos.logger.info("Delete Topic(#{aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{key[0].inspect}, endpoint: #{key[1].inspect}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
         if aws_sub.subscription_arn.split(':').length < 6
@@ -95,6 +83,30 @@ module Simnos
 
         client.unsubscribe(subscription_arn: aws_sub.subscription_arn)
       end
+    end
+
+    def traverse_subscriptions(aws_topic, dsl_subscriptions, aws_subscriptions)
+      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) { |dsl_sub, h| h[[dsl_sub.protocol, dsl_sub.masked_endpoint]] = dsl_sub }
+      aws_sub_by_key = aws_subscriptions.each_with_object({}) { |aws_sub, h| h[[aws_sub.protocol, aws_sub.endpoint]] = aws_sub }
+
+      if @options[:recreate_subscriptions]
+        Simnos.logger.info("Subscription recreation flag is on.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+        delete_subscriptions(aws_topic, aws_sub_by_key)
+        aws_sub_by_key = {}
+      end
+
+      # create
+      dsl_sub_by_key.reject { |key, _| aws_sub_by_key[key] }.each do |key, dsl_sub|
+        dsl_sub.aws_topic(aws_topic).create
+      end
+
+      # there is no way to update subscriptions
+      dsl_sub_by_key.each do |key, dsl_sub|
+        aws_sub_by_key.delete(key)
+      end
+
+      # delete
+      delete_subscriptions(aws_topic, aws_sub_by_key)
     end
 
     def traverse_topics(dsl_topics_all, aws_topics_by_name)

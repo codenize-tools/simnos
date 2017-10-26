@@ -31,13 +31,14 @@ module Simnos
 
       attr_reader :topic, :protocol
 
+      # We have to mask endpoint because SNS returns masked endpoint from API
       def masked_endpoint
         if URI.extract(@endpoint, ['http', 'https']).empty?
-          return @endpoint
+          return endpoint
         end
         uri = URI.parse(endpoint)
-        if uri.userinfo
-          uri.userinfo = [uri.userinfo.split(':', 2).first, '****'].join(':')
+        if md = uri.userinfo&.match(/(.*):(.*)/)
+          uri.userinfo = "#{md[1]}:****"
         end
         uri.to_s
       end
