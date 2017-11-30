@@ -46,6 +46,8 @@ Usage: simnos [options]
                                      no color
         --with-subscriptions
                                      manage subscriptions
+        --only-create-subscriptions
+                                     only create subscriptions(recreation will occur with recreate-subscriptions option, even this option is enabled)
         --recreate-subscriptions
                                      recreate subscriptions
         --secret-provider NAME
