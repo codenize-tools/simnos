@@ -44,6 +44,7 @@ module Simnos
         opts.on('-s', '--split', 'split export DSL file to 1 per topic') { @options[:split] = true }
         opts.on('',   '--no-color', 'no color') { @options[:color] = false }
         opts.on('',   '--with-subscriptions', 'manage subscriptions') { @options[:with_subscriptions] = true }
+        opts.on('',   '--only-create-subscriptions', 'only create subscriptions(recreation will occur with recreate-subscriptions option, even this option is enabled)') { @options[:only_create_subscriptions] = true }
         opts.on('',   '--recreate-subscriptions', 'recreate subscriptions') { @options[:recreate_subscriptions] = true }
         opts.on('',   '--secret-provider NAME', 'use secret value expansion') { |v| @options[:secret_provider] = v }
         opts.on('-i', '--include-names NAMES', 'include SNS names', Array) { |v| @options[:includes] = v }

@@ -105,8 +105,10 @@ module Simnos
         aws_sub_by_key.delete(key)
       end
 
-      # delete
-      delete_subscriptions(aws_topic, aws_sub_by_key)
+      unless @options[:only_create_subscriptions]
+        # delete
+        delete_subscriptions(aws_topic, aws_sub_by_key)
+      end
     end
 
     def traverse_topics(dsl_topics_all, aws_topics_by_name)
