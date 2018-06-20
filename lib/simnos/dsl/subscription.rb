@@ -1,3 +1,4 @@
+require 'colorize'
 require 'simnos/utils'
 
 module Simnos
@@ -6,7 +7,7 @@ module Simnos
       include Simnos::TemplateHelper
 
       def create
-        Simnos.logger.info("Create Topic(#{@aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{protocol.inspect}, endpoint: #{masked_endpoint.inspect}#{@options[:dry_run] ? ' [dry-run]' : ''}")
+        Simnos.logger.info("Create Topic(#{@aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{protocol.inspect}, endpoint: #{masked_endpoint.inspect}#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:green))
         return if @options[:dry_run]
 
         client.subscribe(

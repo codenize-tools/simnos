@@ -1,3 +1,4 @@
+require 'colorize'
 require 'simnos/utils'
 require 'simnos/dsl/subscriptions'
 
@@ -26,7 +27,7 @@ module Simnos
         end
 
         def create
-          Simnos.logger.info("Create Topic #{name}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+          Simnos.logger.info("Create Topic #{name}.#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:green))
           return { topic: Hashie::Mash.new(topic_arn: 'not yet created') } if @options[:dry_run]
 
           resp = client.create_topic(name: name)
@@ -72,7 +73,7 @@ module Simnos
           Simnos.logger.debug(@aws_topic[:attrs].attributes.pretty_inspect)
           Simnos.logger.debug('--- dsl ---')
           Simnos.logger.debug(dsl_val)
-          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:blue))
           dsl_attrs = {
             attribute_name: attr_name,
             attribute_value: dsl_val,
@@ -92,7 +93,7 @@ module Simnos
         def modify_attr_hash(dsl_val, attr_name)
           aws_val = JSON.parse(@aws_topic[:attrs].attributes[attr_name])
           return if Simnos::Utils.normalize_hash(dsl_val) == Simnos::Utils.normalize_hash(aws_val)
-          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+          Simnos.logger.info("Modify Topic `#{name}` #{attr_name} attributes.#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:blue))
           dsl_attrs = {
             attribute_name: attr_name,
             attribute_value: dsl_val,
