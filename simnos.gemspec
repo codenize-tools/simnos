@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'aws-sdk', '~> 2'
   spec.add_dependency 'hashie'
   spec.add_dependency 'diffy'
-  spec.add_dependency 'term-ansicolor'
+  spec.add_dependency 'colorize'
 
   spec.add_development_dependency 'bundler', '~> 1.14'
   spec.add_development_dependency 'rake', '~> 10.0'

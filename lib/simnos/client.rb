@@ -1,3 +1,4 @@
+require 'colorize'
 require 'pp'
 require 'simnos/client_wrapper'
 require 'simnos/converter'
@@ -74,7 +75,7 @@ module Simnos
 
     def delete_subscriptions(aws_topic, aws_sub_by_key)
       aws_sub_by_key.each do |key, aws_sub|
-        Simnos.logger.info("Delete Topic(#{aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{key[0].inspect}, endpoint: #{key[1].inspect}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+        Simnos.logger.info("Delete Topic(#{aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{key[0].inspect}, endpoint: #{key[1].inspect}.#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:red))
         if aws_sub.subscription_arn.split(':').length < 6
           Simnos.logger.warn("Can not delete Subscription `#{aws_sub.subscription_arn}`")
           next
@@ -139,7 +140,7 @@ module Simnos
 
       # delete
       aws_topics_by_name.each do |name, aws_topic|
-        Simnos.logger.info("Delete Topic #{name}.#{@options[:dry_run] ? ' [dry-run]' : ''}")
+        Simnos.logger.info("Delete Topic #{name}.#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:red))
         next if @options[:dry_run]
 
         client.delete_topic(topic_arn: aws_topic[:topic].topic_arn)
