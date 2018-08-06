@@ -73,6 +73,23 @@ module Simnos
 
     private
 
+    def target_subscription?(endpoint)
+      unless @options[:include_endpoints].empty?
+        unless @options[:include_endpoints].include?(endpoint)
+          Simnos.logger.debug("skip subscription(with include-endpoints option) #{endpoint}")
+          return false
+        end
+      end
+
+      unless @options[:exclude_endpoints].empty?
+        if @options[:exclude_endpoints].any? { |regex| endpoint =~ regex }
+          Simnos.logger.debug("skip subscription(with exclude-endpoints option) #{endpoint}")
+          return false
+        end
+      end
+      true
+    end
+
     def delete_subscriptions(aws_topic, aws_sub_by_key)
       aws_sub_by_key.each do |key, aws_sub|
         Simnos.logger.info("Delete Topic(#{aws_topic[:topic].topic_arn.split(':').last}) Subscription. protocol: #{key[0].inspect}, endpoint: #{key[1].inspect}.#{@options[:dry_run] ? ' [dry-run]' : ''}".colorize(:red))
@@ -87,8 +104,14 @@ module Simnos
     end
 
     def traverse_subscriptions(aws_topic, dsl_subscriptions, aws_subscriptions)
-      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) { |dsl_sub, h| h[[dsl_sub.protocol, dsl_sub.masked_endpoint]] = dsl_sub }
-      aws_sub_by_key = aws_subscriptions.each_with_object({}) { |aws_sub, h| h[[aws_sub.protocol, aws_sub.endpoint]] = aws_sub }
+      dsl_sub_by_key = dsl_subscriptions.each_with_object({}) do |dsl_sub, h|
+        next unless target_subscription?(dsl_sub.endpoint)
+        h[[dsl_sub.protocol, dsl_sub.masked_endpoint]] = dsl_sub
+      end
+      aws_sub_by_key = aws_subscriptions.each_with_object({}) do |aws_sub, h|
+        next unless target_subscription?(aws_sub.endpoint)
+        h[[aws_sub.protocol, aws_sub.endpoint]] = aws_sub
+      end
 
       if @options[:recreate_subscriptions]
         Simnos.logger.info("Subscription recreation flag is on.#{@options[:dry_run] ? ' [dry-run]' : ''}")

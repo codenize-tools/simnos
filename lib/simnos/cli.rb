@@ -16,6 +16,8 @@ module Simnos
         color: true,
         includes: [],
         excludes: [],
+        include_endpoints: [],
+        exclude_endpoints: [],
       }
       parser.order!(@argv)
     end
@@ -50,6 +52,12 @@ module Simnos
         opts.on('-i', '--include-names NAMES', 'include SNS names', Array) { |v| @options[:includes] = v }
         opts.on('-x', '--exclude-names NAMES', 'exclude SNS names by regex', Array) do |v|
           @options[:excludes] = v.map! do |name|
+            name =~ /\A\/(.*)\/\z/ ? Regexp.new($1) : Regexp.new("\A#{Regexp.escape(name)}\z")
+          end
+        end
+        opts.on('', '--include-endpoints NAMES', 'include SNS subscriptions by endpoint', Array) { |v| @options[:include_endpoints] = v }
+        opts.on('', '--exclude-endpoints NAMES', 'exclude SNS subscriptions by endpoint', Array) do |v|
+          @options[:exclude_endpoints] = v.map! do |name|
             name =~ /\A\/(.*)\/\z/ ? Regexp.new($1) : Regexp.new("\A#{Regexp.escape(name)}\z")
           end
         end
