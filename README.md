@@ -54,6 +54,10 @@ Usage: simnos [options]
                                      use secret value expansion
     -i, --include-names NAMES        include SNS names
     -x, --exclude-names NAMES        exclude SNS names by regex
+        --include-endpoints NAMES
+                                     include SNS subscriptions by endpoint
+        --exclude-endpoints NAMES
+                                     exclude SNS subscriptions by endpoint
 ```
 
 ## SNSfile
