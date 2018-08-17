@@ -14,6 +14,7 @@ module Simnos
           topic_arn: @aws_topic[:topic].topic_arn,
           protocol: protocol,
           endpoint: endpoint,
+          attributes: attributes,
         )
       end
 
@@ -22,15 +23,16 @@ module Simnos
         self
       end
 
-      def initialize(context, topic: , protocol: , endpoint: )
+      def initialize(context, topic: , protocol: , endpoint: , attributes: )
         @context = context
         @options = @context.options
         @topic = topic
         @protocol = protocol
         @endpoint = endpoint
+        @attributes = attributes
       end
 
-      attr_reader :topic, :protocol
+      attr_reader :topic, :protocol, :attributes
 
       # We have to mask endpoint because SNS returns masked endpoint from API
       def masked_endpoint
