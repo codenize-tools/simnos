@@ -126,7 +126,9 @@ module Simnos
 
       # there is no way to update subscriptions
       dsl_sub_by_key.each do |key, dsl_sub|
-        aws_sub_by_key.delete(key)
+        next unless aws_sub = aws_sub_by_key.delete(key)
+        dsl_sub.aws(aws_sub)
+        dsl_sub.modify_attrs
       end
 
       unless @options[:only_create_subscriptions]

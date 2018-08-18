@@ -96,7 +96,7 @@ sns "ap-northeast-1" do
       subscription protocol: "https", endpoint: "https://your.awesome.site/"
       subscription protocol: "email", endpoint: "simnos@example.com"
       subscription protocol: "email-json", endpoint: "simnos@example.com"
-      subscription protocol: "sqs", endpoint: "arn:aws:sqs:ap-northeast-1:XXXXXXXXXXXX:test-queue"
+      subscription protocol: "sqs", endpoint: "arn:aws:sqs:ap-northeast-1:XXXXXXXXXXXX:test-queue", attributes: {"DeliveryPolicy" => {}, "FilterPolicy" => {"foo": ["bar"], "RawMessageDelivery": "true"}}
     end
   end
 end
