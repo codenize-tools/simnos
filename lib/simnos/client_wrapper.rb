@@ -7,7 +7,7 @@ module Simnos
     extend Forwardable
     include Filterable
 
-    def_delegators :@client, *%i/delete_topic get_topic_attributes create_topic set_topic_attributes set_subscription_attributes subscribe unsubscribe/
+    def_delegators :@client, *%i/delete_topic get_topic_attributes create_topic set_topic_attributes set_subscription_attributes subscribe unsubscribe set_subscription_attributes/
 
     def initialize(options)
       @options = options
@@ -49,9 +49,13 @@ module Simnos
         next_token = resp.next_token
       end while next_token
       aws_subscriptions.map do |aws_sub|
+        if aws_sub.subscription_arn.split(':').length < 6
+          Simnos.logger.warn("Subscription is not confirmed yet. #{aws_sub}".colorize(:red))
+          next
+        end
         resp = @client.get_subscription_attributes(subscription_arn: aws_sub.subscription_arn)
         SubscriptionWithAttributes.new(aws_sub, resp.attributes)
-      end
+      end.compact
     end
 
     def region
