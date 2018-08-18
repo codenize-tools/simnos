@@ -41,14 +41,17 @@ module Simnos
     end
 
     def subscriptions_by_topic(topic_arn: )
-      results = []
+      aws_subscriptions = []
       next_token = nil
       begin
         resp = @client.list_subscriptions_by_topic(topic_arn: topic_arn, next_token: next_token)
-        results.concat(resp.subscriptions)
+        aws_subscriptions.concat(resp.subscriptions)
         next_token = resp.next_token
       end while next_token
-      results
+      aws_subscriptions.map do |aws_sub|
+        resp = @client.get_subscription_attributes(subscription_arn: aws_sub.subscription_arn)
+        SubscriptionWithAttributes.new(aws_sub, resp.attributes)
+      end
     end
 
     def region
@@ -59,6 +62,27 @@ module Simnos
 
     def topic_name(topic)
       topic.topic_arn.split(':').last
+    end
+
+    class SubscriptionWithAttributes
+      # Source: https://docs.aws.amazon.com/sns/latest/api/API_SetSubscriptionAttributes.html
+      ATTRIBUTES_WHITELIST = {
+        'DeliveryPolicy' => nil,
+        'FilterPolicy' => nil,
+        'RawMessageDelivery' => "false",
+      }
+
+      extend Forwardable
+
+      def initialize(aws_sub, raw_attributes)
+        @aws_sub = aws_sub
+        @attributes = raw_attributes.select do |key, value|
+          ATTRIBUTES_WHITELIST.key?(key) && ATTRIBUTES_WHITELIST[key] != value
+        end
+      end
+
+      def_delegators :@aws_sub, :endpoint, :owner, :protocol, :subscription_arn, :topic_arn
+      attr_reader :attributes
     end
   end
 end

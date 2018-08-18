@@ -14,7 +14,8 @@ sns <%= region.inspect %> do
 
     subscriptions do
     <%- (topic[:subscriptions] || []).each do |subscription| -%>
-      subscription protocol: <%= subscription.protocol.inspect %>, endpoint: <%= subscription.endpoint.inspect %>
+      subscription protocol: <%= subscription.protocol.inspect %>, endpoint: <%= subscription.endpoint.inspect -%>
+      <%- if subscription.attributes != {} -%>, attributes: <%= subscription.attributes.inspect %><%- end %>
     <%- end -%>
     end
     <%- end -%>

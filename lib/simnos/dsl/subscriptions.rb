@@ -19,8 +19,8 @@ module Simnos
 
       private
 
-      def subscription(protocol: , endpoint: )
-        @result << Subscription.new(@context, topic: @topic, protocol: protocol, endpoint: endpoint)
+      def subscription(protocol: , endpoint: , attributes: nil)
+        @result << Subscription.new(@context, topic: @topic, protocol: protocol, endpoint: endpoint, attributes: attributes)
       end
     end
   end
