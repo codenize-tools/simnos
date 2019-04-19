@@ -58,7 +58,7 @@ module Simnos
         opts.on('', '--include-endpoints NAMES', 'include SNS subscriptions by endpoint', Array) { |v| @options[:include_endpoints] = v }
         opts.on('', '--exclude-endpoints NAMES', 'exclude SNS subscriptions by endpoint', Array) do |v|
           @options[:exclude_endpoints] = v.map! do |name|
-            name =~ /\A\/(.*)\/\z/ ? Regexp.new($1) : Regexp.new("\A#{Regexp.escape(name)}\z")
+            name =~ /\A\/(.*)\/\z/ ? Regexp.new($1) : Regexp.new("\\A#{Regexp.escape(name)}\\z")
           end
         end
       end
